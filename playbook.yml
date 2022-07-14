@@ -14,6 +14,7 @@
     file:
       src: yum.conf
       dest: /etc/yum.conf
+      force: true
     tags: files
   
   - shell: rpm -Uvh http://repos.mesosphere.com/el/7/noarch/RPMS/mesosphere-el-repo-7-1.noarch.rpm
@@ -49,13 +50,14 @@
     service: 
       name: zookeeper-server
       state: started
-      enabled: yes  
+      enabled: yes
+    when: 0 > 1
 
   - name: Start mesos-master
     service: 
       name: mesos-master
       state: started
-      enabled: yes  
+      enabled: yes
 
   - name: Start mesos-slave
     service: 
@@ -63,8 +65,15 @@
       state: started
       enabled: yes
 
+  - name: Set marathon-env
+    shell: 
+     cmd: |
+      cat << EOF >> /etc/default/marathon
+      MARATHON_MASTER=zk://127.0.0.1:2181/mesos
+      MARATHON_ZK=zk://127.0.0.1:2181/marathon
+      EOF
   - name: Start marathon
     service: 
       name: marathon
       state: started
-      enabled: yes  
+      enabled: yes
